@@ -30,13 +30,16 @@ namespace StudentExercisesAPI.Controllers
         }
         // GET: api/student
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get(string includes)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
+
+                    if (includes == "exercise")
+                    {
                     cmd.CommandText = @"SELECT s.Id, s.FirstName, s.LastName, s.SlackHandle, s.CohortId,
                                             c.Label as CohortLabel,
                                             se.ExerciseId,
@@ -46,6 +49,17 @@ namespace StudentExercisesAPI.Controllers
                                         LEFT JOIN StudentExercise se on s.Id = se.StudentId
                                         LEFT JOIN Exercise e on e.Id = se.ExerciseId
                                         ";
+
+                    } else
+                    {
+                    cmd.CommandText = @"SELECT s.Id, s.FirstName, s.LastName, s.SlackHandle, s.CohortId,
+                                            c.Label as CohortLabel
+                                        FROM Student s 
+                                        INNER JOIN Cohort c on s.CohortId = c.Id 
+                                        ";
+                    }
+
+
                     SqlDataReader reader = cmd.ExecuteReader();
                     Dictionary<int, Student> students = new Dictionary<int, Student>();
 
@@ -73,7 +87,7 @@ namespace StudentExercisesAPI.Controllers
 
                         Student fromDictionary = students[studentId];
 
-                        if (!reader.IsDBNull(reader.GetOrdinal("ExerciseId")))
+                        if (includes == "exercise"  && !reader.IsDBNull(reader.GetOrdinal("ExerciseId")))
                         {
                             Exercise anExercise = new Exercise()
                             {
@@ -86,7 +100,7 @@ namespace StudentExercisesAPI.Controllers
                     }
                     reader.Close();
 
-                    return Ok(students);
+                    return Ok(students.Values);
                 }
             }
         }
