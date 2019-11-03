@@ -79,7 +79,7 @@ namespace StudentExercisesAPI.Controllers
                                 {
                                     Id = reader.GetInt32(reader.GetOrdinal("CohortId")),
                                     Label = reader.GetString(reader.GetOrdinal("CohortLabel"))
-                                },
+                                }
                             };
 
                             students.Add(studentId, newStudent);

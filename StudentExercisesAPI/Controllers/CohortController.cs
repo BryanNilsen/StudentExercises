@@ -37,27 +37,79 @@ namespace StudentExercisesAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT Id, Label FROM Cohort";
+                    cmd.CommandText = @"
+                    SELECT c.Id AS CohortId, c.Label,
+                        i.Id AS InstructorId, i.FirstName AS InstructorFirstName, i.LastName AS InstructorLastName, i.SlackHandle AS InstructorSlackHandle, i.Specialty,
+                        s.Id AS StudentId, s.FirstName AS StudentFirstName, s.LastName AS StudentLastName, s.SlackHandle AS StudentSlackHandle
+                    FROM Cohort c
+                    LEFT JOIN Instructor i ON c.id = i.CohortId
+                    LEFT JOIN Student s ON c.id = s.CohortId
+                    ";
+
                     SqlDataReader reader = cmd.ExecuteReader();
-                    List<Cohort> cohorts = new List<Cohort>();
+                    Dictionary<int, Cohort> cohorts = new Dictionary<int, Cohort>();
 
                     while (reader.Read())
                     {
-                        Cohort cohort = new Cohort
+                        int cohortId = reader.GetInt32(reader.GetOrdinal("CohortId"));
+                        if (!cohorts.ContainsKey(cohortId))
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Label = reader.GetString(reader.GetOrdinal("Label")),
-                            //get associated students and instructors?
-                            Students = new List<Student>(),
-                            Instructors = new List<Instructor>()
-                        };
+                            Cohort newCohort = new Cohort
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("CohortId")),
+                                Label = reader.GetString(reader.GetOrdinal("Label")),
+                                //get associated students and instructors?
+                                Students = new List<Student>(),
+                                Instructors = new List<Instructor>()
+                            };
+                            cohorts.Add(cohortId, newCohort);
+                        }
 
+                        Cohort fromDictionary = cohorts[cohortId];
 
-                        cohorts.Add(cohort);
+                        //ADD STUDENTS TO COHORT
+                        if (!reader.IsDBNull(reader.GetOrdinal("StudentId")))
+                        {
+                            int studentId = reader.GetInt32(reader.GetOrdinal("StudentId"));
+                            if (!fromDictionary.Students.Any(student => student.Id == studentId))
+                            {
+
+                                Student newStudent = new Student()
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("StudentId")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("StudentFirstName")),
+                                    LastName = reader.GetString(reader.GetOrdinal("StudentLastName")),
+                                    SlackHandle = reader.GetString(reader.GetOrdinal("StudentSlackHandle")),
+                                    CohortId = reader.GetInt32(reader.GetOrdinal("CohortId"))
+                                };
+
+                                fromDictionary.Students.Add(newStudent);
+                            }
+
+                        }
+
+                        //ADD INSTRUCTORS TO COHORT
+                        if (!reader.IsDBNull(reader.GetOrdinal("InstructorId")))
+                        {
+                            int instructorId = reader.GetInt32(reader.GetOrdinal("InstructorId"));
+                            if (!fromDictionary.Instructors.Any(instructor => instructor.Id == instructorId))
+                            {
+                                Instructor newInstructor = new Instructor()
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("InstructorId")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("InstructorFirstName")),
+                                    LastName = reader.GetString(reader.GetOrdinal("InstructorLastName")),
+                                    SlackHandle = reader.GetString(reader.GetOrdinal("InstructorSlackHandle")),
+                                    Specialty = reader.GetString(reader.GetOrdinal("Specialty")),
+                                    CohortId = reader.GetInt32(reader.GetOrdinal("CohortId"))
+                                };
+                                fromDictionary.Instructors.Add(newInstructor);
+                            }
+                        }
                     }
                     reader.Close();
 
-                    return Ok(cohorts);
+                    return Ok(cohorts.Values);
                 }
             }
         }
