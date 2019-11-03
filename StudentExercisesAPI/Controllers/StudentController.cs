@@ -30,15 +30,15 @@ namespace StudentExercisesAPI.Controllers
         }
         // GET: api/student
         [HttpGet]
-        public async Task<IActionResult> Get(string includes)
+        public async Task<IActionResult> Get(string include)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-
-                    if (includes == "exercise")
+                    // !! look at exercise to incorporate q string param
+                    if (include == "exercise")
                     {
                     cmd.CommandText = @"SELECT s.Id, s.FirstName, s.LastName, s.SlackHandle, s.CohortId,
                                             c.Label as CohortLabel,
@@ -87,7 +87,7 @@ namespace StudentExercisesAPI.Controllers
 
                         Student fromDictionary = students[studentId];
 
-                        if (includes == "exercise"  && !reader.IsDBNull(reader.GetOrdinal("ExerciseId")))
+                        if (include == "exercise"  && !reader.IsDBNull(reader.GetOrdinal("ExerciseId")))
                         {
                             Exercise anExercise = new Exercise()
                             {
