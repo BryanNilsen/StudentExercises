@@ -30,31 +30,83 @@ namespace StudentExercisesAPI.Controllers
         }
         // GET: api/Exercise
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get(string q, string include)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT Id, Label, Language FROM Exercise";
+                    // Evaluate Parameters
+                    if (include == "students")
+                    {
+                    cmd.CommandText = @"SELECT e.Id, e.Label, e.Language,
+	                                    s.Id AS StudentId, s.FirstName, s.LastName, s.CohortId, s.SlackHandle
+	                                    FROM Exercise e
+	                                    LEFT JOIN StudentExercise se ON e.Id = se.ExerciseId
+	                                    LEFT JOIN Student s ON s.Id = se.StudentId
+                                        ";
+                        if (q != null)
+                        {
+                            cmd.CommandText += @" WHERE Label LIKE @Query 
+                                                    OR Language LIKE @Query
+                                                    OR FirstName LIKE @Query
+                                                    OR LastName LIKE @Query
+                                                    OR SlackHandle LIKE @Query
+                                                ";
+                            cmd.Parameters.Add(new SqlParameter("@Query", "%" + q + "%"));
+                        }
+                    }
+                    else
+                    {
+                        cmd.CommandText = "SELECT Id, Label, Language FROM Exercise";
+                        if (q != null)
+                        {
+                            cmd.CommandText += " WHERE Label LIKE @Query OR Language LIKE @Query";
+                            cmd.Parameters.Add(new SqlParameter("@Query", "%" + q + "%"));
+                        }
+                    }
+
+
                     SqlDataReader reader = cmd.ExecuteReader();
-                    List<Exercise> exercises = new List<Exercise>();
+                    Dictionary<int, Exercise> exercises = new Dictionary<int, Exercise>();
+
 
                     while (reader.Read())
                     {
-                        Exercise exercise = new Exercise
+                        int exerciseId = reader.GetInt32(reader.GetOrdinal("Id"));
+                        if (!exercises.ContainsKey(exerciseId))
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Label = reader.GetString(reader.GetOrdinal("Label")),
-                            Language = reader.GetString(reader.GetOrdinal("Language"))
-                        };
+                            Exercise newExercise = new Exercise
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                Label = reader.GetString(reader.GetOrdinal("Label")),
+                                Language = reader.GetString(reader.GetOrdinal("Language"))
+                            };
 
-                        exercises.Add(exercise);
+                            exercises.Add(exerciseId, newExercise);
+
+                        }
+
+                        Exercise fromDictionary = exercises[exerciseId];
+                        if (include == "students" && !reader.IsDBNull(reader.GetOrdinal("StudentId")))
+                        {
+                            Student aStudent = new Student()
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("StudentId")),
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                SlackHandle = reader.GetString(reader.GetOrdinal("SlackHandle")),
+                                CohortId = reader.GetInt32(reader.GetOrdinal("CohortId"))
+                            };
+                            fromDictionary.Students.Add(aStudent);
+                        }
                     }
+
+
                     reader.Close();
 
-                    return Ok(exercises);
+                    return Ok(exercises.Values);
                 }
             }
         }

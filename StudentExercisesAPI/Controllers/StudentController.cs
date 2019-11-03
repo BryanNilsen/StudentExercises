@@ -43,7 +43,7 @@ namespace StudentExercisesAPI.Controllers
                     cmd.CommandText = @"SELECT s.Id, s.FirstName, s.LastName, s.SlackHandle, s.CohortId,
                                             c.Label as CohortLabel,
                                             se.ExerciseId,
-                                            e.Label AS ExerciseLabel, e.id as 'ExerciseId', e.Language
+                                            e.Label AS ExerciseLabel, e.id AS ExerciseId, e.Language
                                         FROM Student s 
                                         INNER JOIN Cohort c on s.CohortId = c.Id 
                                         LEFT JOIN StudentExercise se on s.Id = se.StudentId
