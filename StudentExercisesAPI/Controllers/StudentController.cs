@@ -30,7 +30,7 @@ namespace StudentExercisesAPI.Controllers
         }
         // GET: api/student
         [HttpGet]
-        public async Task<IActionResult> Get(string include)
+        public async Task<IActionResult> Get(string include, string q)
         {
             using (SqlConnection conn = Connection)
             {
@@ -38,7 +38,7 @@ namespace StudentExercisesAPI.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     // !! look at exercise to incorporate q string param
-                    if (include == "exercise")
+                    if (include == "exercises")
                     {
                     cmd.CommandText = @"SELECT s.Id, s.FirstName, s.LastName, s.SlackHandle, s.CohortId,
                                             c.Label as CohortLabel,
@@ -59,6 +59,14 @@ namespace StudentExercisesAPI.Controllers
                                         ";
                     }
 
+                    if (q != null)
+                    {
+                    cmd.CommandText += @" WHERE FirstName LIKE @Query
+                                            OR LastName LIKE @Query
+                                            OR SlackHandle LIKE @Query
+                                        ";
+                    cmd.Parameters.Add(new SqlParameter("@Query", "%" + q + "%"));
+                    }
 
                     SqlDataReader reader = cmd.ExecuteReader();
                     Dictionary<int, Student> students = new Dictionary<int, Student>();
@@ -87,7 +95,7 @@ namespace StudentExercisesAPI.Controllers
 
                         Student fromDictionary = students[studentId];
 
-                        if (include == "exercise"  && !reader.IsDBNull(reader.GetOrdinal("ExerciseId")))
+                        if (include == "exercises"  && !reader.IsDBNull(reader.GetOrdinal("ExerciseId")))
                         {
                             Exercise anExercise = new Exercise()
                             {
