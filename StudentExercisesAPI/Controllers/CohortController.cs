@@ -30,21 +30,56 @@ namespace StudentExercisesAPI.Controllers
         }
         // GET: api/Cohort
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get(string q, string include)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"
-                    SELECT c.Id AS CohortId, c.Label,
-                        i.Id AS InstructorId, i.FirstName AS InstructorFirstName, i.LastName AS InstructorLastName, i.SlackHandle AS InstructorSlackHandle, i.Specialty,
-                        s.Id AS StudentId, s.FirstName AS StudentFirstName, s.LastName AS StudentLastName, s.SlackHandle AS StudentSlackHandle
-                    FROM Cohort c
-                    LEFT JOIN Instructor i ON c.id = i.CohortId
-                    LEFT JOIN Student s ON c.id = s.CohortId
+                    if (include == "all")
+                    {
+                        cmd.CommandText = @"
+                            SELECT c.Id AS CohortId, c.Label,
+                                i.Id AS InstructorId, i.FirstName AS InstructorFirstName, i.LastName AS InstructorLastName, i.SlackHandle AS InstructorSlackHandle, i.Specialty,
+                                s.Id AS StudentId, s.FirstName AS StudentFirstName, s.LastName AS StudentLastName, s.SlackHandle AS StudentSlackHandle
+                            FROM Cohort c
+                            LEFT JOIN Instructor i ON c.id = i.CohortId
+                            LEFT JOIN Student s ON c.id = s.CohortId
+                            ";
+                    }
+                    else if (include == "students")
+                    {
+                        cmd.CommandText = @"
+                            SELECT c.Id AS CohortId, c.Label,
+                                s.Id AS StudentId, s.FirstName AS StudentFirstName, s.LastName AS StudentLastName, s.SlackHandle AS StudentSlackHandle
+                            FROM Cohort c
+                            LEFT JOIN Student s ON c.id = s.CohortId
+                            ";
+                    }
+                    else if (include == "instructors")
+                    {
+                        cmd.CommandText = @"
+                            SELECT c.Id AS CohortId, c.Label,
+                                i.Id AS InstructorId, i.FirstName AS InstructorFirstName, i.LastName AS     InstructorLastName, i.SlackHandle AS InstructorSlackHandle, i.Specialty
+                            FROM Cohort c
+                            LEFT JOIN Instructor i ON c.id = i.CohortId
                     ";
+                    }
+                    else
+                    {
+                        cmd.CommandText = @"
+                            SELECT c.Id AS CohortId, c.Label
+                            FROM Cohort c
+                        ";
+                    }
+
+                    if (q != null)
+                    {
+                        cmd.CommandText += @" WHERE Label LIKE @Query
+                                        ";
+                        cmd.Parameters.Add(new SqlParameter("@Query", "%" + q + "%"));
+                    }
 
                     SqlDataReader reader = cmd.ExecuteReader();
                     Dictionary<int, Cohort> cohorts = new Dictionary<int, Cohort>();
@@ -68,7 +103,7 @@ namespace StudentExercisesAPI.Controllers
                         Cohort fromDictionary = cohorts[cohortId];
 
                         //ADD STUDENTS TO COHORT
-                        if (!reader.IsDBNull(reader.GetOrdinal("StudentId")))
+                        if ((include == "students" || include == "all" ) && !reader.IsDBNull(reader.GetOrdinal("StudentId")))
                         {
                             int studentId = reader.GetInt32(reader.GetOrdinal("StudentId"));
                             if (!fromDictionary.Students.Any(student => student.Id == studentId))
@@ -89,7 +124,7 @@ namespace StudentExercisesAPI.Controllers
                         }
 
                         //ADD INSTRUCTORS TO COHORT
-                        if (!reader.IsDBNull(reader.GetOrdinal("InstructorId")))
+                        if ((include == "instructors" || include == "all") && !reader.IsDBNull(reader.GetOrdinal("InstructorId")))
                         {
                             int instructorId = reader.GetInt32(reader.GetOrdinal("InstructorId"));
                             if (!fromDictionary.Instructors.Any(instructor => instructor.Id == instructorId))
@@ -146,7 +181,6 @@ namespace StudentExercisesAPI.Controllers
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("CohortId")),
                             Label = reader.GetString(reader.GetOrdinal("Label")),
-                            //get associated students and instructors?
                         };
                     }
 

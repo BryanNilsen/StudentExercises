@@ -30,7 +30,7 @@ namespace StudentExercisesAPI.Controllers
         }
         // GET: api/student
         [HttpGet]
-        public async Task<IActionResult> Get(string include)
+        public async Task<IActionResult> Get(string include, string q)
         {
             using (SqlConnection conn = Connection)
             {
@@ -59,6 +59,14 @@ namespace StudentExercisesAPI.Controllers
                                         ";
                     }
 
+                    if (q != null)
+                    {
+                    cmd.CommandText += @" WHERE FirstName LIKE @Query
+                                            OR LastName LIKE @Query
+                                            OR SlackHandle LIKE @Query
+                                        ";
+                    cmd.Parameters.Add(new SqlParameter("@Query", "%" + q + "%"));
+                    }
 
                     SqlDataReader reader = cmd.ExecuteReader();
                     Dictionary<int, Student> students = new Dictionary<int, Student>();
