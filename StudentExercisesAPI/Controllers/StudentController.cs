@@ -38,7 +38,7 @@ namespace StudentExercisesAPI.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     // !! look at exercise to incorporate q string param
-                    if (include == "exercise")
+                    if (include == "exercises")
                     {
                     cmd.CommandText = @"SELECT s.Id, s.FirstName, s.LastName, s.SlackHandle, s.CohortId,
                                             c.Label as CohortLabel,
@@ -95,7 +95,7 @@ namespace StudentExercisesAPI.Controllers
 
                         Student fromDictionary = students[studentId];
 
-                        if (include == "exercise"  && !reader.IsDBNull(reader.GetOrdinal("ExerciseId")))
+                        if (include == "exercises"  && !reader.IsDBNull(reader.GetOrdinal("ExerciseId")))
                         {
                             Exercise anExercise = new Exercise()
                             {

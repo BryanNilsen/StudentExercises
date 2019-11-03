@@ -228,27 +228,26 @@ namespace StudentExercisesAPI.Controllers
             }
         }
 
-        //// POST: api/Exercises
-        //[HttpPost]
-        //public async Task<IActionResult> Post([FromBody] Exercise exercise)
-        //{
-        //    using (SqlConnection conn = Connection)
-        //    {
-        //        conn.Open();
-        //        using (SqlCommand cmd = conn.CreateCommand())
-        //        {
-        //            cmd.CommandText = @"INSERT INTO Exercises (Label, Language)
-        //                                OUTPUT INSERTED.Id
-        //                                VALUES (@label, @language)";
-        //            cmd.Parameters.Add(new SqlParameter("@label", exercise.Label));
-        //            cmd.Parameters.Add(new SqlParameter("@language", exercise.Language));
+        // POST: api/Cohort
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] Cohort cohort)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"INSERT INTO Cohort (Label)
+                                        OUTPUT INSERTED.Id
+                                        VALUES (@label)";
+                    cmd.Parameters.Add(new SqlParameter("@label", cohort.Label));
 
-        //            int newId = (int)cmd.ExecuteScalar();
-        //            exercise.Id = newId;
-        //            return CreatedAtRoute("Get", new { id = newId }, exercise);
-        //        }
-        //    }
-        //}
+                    int newId = (int)cmd.ExecuteScalar();
+                    cohort.Id = newId;
+                    return CreatedAtRoute("Get", new { id = newId }, cohort);
+                }
+            }
+        }
 
         //// PUT: api/Exercises/5
         //[HttpPut("{id}")]
