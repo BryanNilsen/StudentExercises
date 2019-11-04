@@ -28,7 +28,7 @@ namespace StudentExercisesAPI.Controllers
                 return new SqlConnection(_config.GetConnectionString("DefaultConnection"));
             }
         }
-        // GET: api/Exercise
+        // GET: api/exercise
         [HttpGet]
         public async Task<IActionResult> Get(string q, string include)
         {
@@ -111,7 +111,7 @@ namespace StudentExercisesAPI.Controllers
             }
         }
 
-        // GET: api/Exercise/5
+        // GET: api/exercise/5
         [HttpGet("{id}", Name = "GetExercise")]
         public async Task<IActionResult> Get([FromRoute] int id)
         {
@@ -145,7 +145,7 @@ namespace StudentExercisesAPI.Controllers
             }
         }
 
-        // POST: api/Exercises
+        // POST: api/exercise
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Exercise exercise)
         {
@@ -167,7 +167,7 @@ namespace StudentExercisesAPI.Controllers
             }
         }
 
-        // PUT: api/Exercises/5
+        // PUT: api/exercise/5
         [HttpPut("{id}")]
 
             public async Task<IActionResult> Put([FromRoute] int id, [FromBody] Exercise exercise)
@@ -209,7 +209,7 @@ namespace StudentExercisesAPI.Controllers
                 }
             }
 
-        // DELETE: api/ApiWithActions/5
+        // DELETE: api/exercise/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
