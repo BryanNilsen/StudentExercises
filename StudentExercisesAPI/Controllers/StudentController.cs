@@ -40,7 +40,7 @@ namespace StudentExercisesAPI.Controllers
                     // !! look at exercise to incorporate q string param
                     if (include == "exercises")
                     {
-                    cmd.CommandText = @"SELECT s.Id, s.FirstName, s.LastName, s.SlackHandle, s.CohortId,
+                        cmd.CommandText = @"SELECT s.Id, s.FirstName, s.LastName, s.SlackHandle, s.CohortId,
                                             c.Label as CohortLabel,
                                             se.ExerciseId,
                                             e.Label AS ExerciseLabel, e.id AS ExerciseId, e.Language
@@ -50,9 +50,10 @@ namespace StudentExercisesAPI.Controllers
                                         LEFT JOIN Exercise e on e.Id = se.ExerciseId
                                         ";
 
-                    } else
+                    }
+                    else
                     {
-                    cmd.CommandText = @"SELECT s.Id, s.FirstName, s.LastName, s.SlackHandle, s.CohortId,
+                        cmd.CommandText = @"SELECT s.Id, s.FirstName, s.LastName, s.SlackHandle, s.CohortId,
                                             c.Label as CohortLabel
                                         FROM Student s 
                                         INNER JOIN Cohort c on s.CohortId = c.Id 
@@ -61,11 +62,11 @@ namespace StudentExercisesAPI.Controllers
 
                     if (q != null)
                     {
-                    cmd.CommandText += @" WHERE FirstName LIKE @Query
+                        cmd.CommandText += @" WHERE FirstName LIKE @Query
                                             OR LastName LIKE @Query
                                             OR SlackHandle LIKE @Query
                                         ";
-                    cmd.Parameters.Add(new SqlParameter("@Query", "%" + q + "%"));
+                        cmd.Parameters.Add(new SqlParameter("@Query", "%" + q + "%"));
                     }
 
                     SqlDataReader reader = cmd.ExecuteReader();
@@ -95,7 +96,7 @@ namespace StudentExercisesAPI.Controllers
 
                         Student fromDictionary = students[studentId];
 
-                        if (include == "exercises"  && !reader.IsDBNull(reader.GetOrdinal("ExerciseId")))
+                        if (include == "exercises" && !reader.IsDBNull(reader.GetOrdinal("ExerciseId")))
                         {
                             Exercise anExercise = new Exercise()
                             {

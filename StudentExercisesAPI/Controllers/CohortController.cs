@@ -103,7 +103,7 @@ namespace StudentExercisesAPI.Controllers
                         Cohort fromDictionary = cohorts[cohortId];
 
                         //ADD STUDENTS TO COHORT
-                        if ((include == "students" || include == "all" ) && !reader.IsDBNull(reader.GetOrdinal("StudentId")))
+                        if ((include == "students" || include == "all") && !reader.IsDBNull(reader.GetOrdinal("StudentId")))
                         {
                             int studentId = reader.GetInt32(reader.GetOrdinal("StudentId"));
                             if (!fromDictionary.Students.Any(student => student.Id == studentId))
@@ -172,17 +172,17 @@ namespace StudentExercisesAPI.Controllers
                     SqlDataReader reader = cmd.ExecuteReader();
                     Cohort cohort = null;
 
-                    Dictionary<int, Cohort> cohorts = new Dictionary<int, Cohort>();
+                    //Dictionary<int, Cohort> cohorts = new Dictionary<int, Cohort>();
                     while (reader.Read())
                     {
-                    if (cohort == null)
-                    {
-                        cohort = new Cohort()
+                        if (cohort == null)
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("CohortId")),
-                            Label = reader.GetString(reader.GetOrdinal("Label")),
-                        };
-                    }
+                            cohort = new Cohort()
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("CohortId")),
+                                Label = reader.GetString(reader.GetOrdinal("Label")),
+                            };
+                        }
 
                         //ADD STUDENTS TO COHORT
                         if (!reader.IsDBNull(reader.GetOrdinal("StudentId")))
